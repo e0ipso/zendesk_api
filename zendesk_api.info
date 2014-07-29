@@ -1,0 +1,17 @@
+name = Zendesk API
+description = Exposes the Zendesk API so it can be easily used form Drupal and creates some field and form importers.
+core = 7.x
+
+; Files
+files[] = class/ZendeskAPIPluginBase.php
+files[] = plugin_types/endpoint/ZendeskAPIEndpointBase.php
+files[] = plugin_types/endpoint/ZendeskAPIEndpointInterface.php
+files[] = plugin_types/endpoint/ZendeskAPIEndpointVariable.php
+files[] = plugin_types/field/ZendeskAPIFieldBase.php
+files[] = plugin_types/field/ZendeskAPIFieldInterface.php
+files[] = plugin_types/field/ZendeskAPIFieldOptions.php
+files[] = plugin_types/field/ZendeskAPIFieldText.php
+files[] = plugin_types/form/ZendeskAPIFormInterface.php
+
+; Exceptions
+files[] = class/ZendeskAPIException.php

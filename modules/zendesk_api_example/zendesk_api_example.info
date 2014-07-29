@@ -1,0 +1,5 @@
+name = Zendesk API example
+description = Zendesk API implementation example.
+core = 7.x
+
+dependencies[] = zendesk_api

@@ -1,0 +1,184 @@
+<?php
+
+/**
+ * @file
+ * Module implementation file.
+ */
+
+/**
+ * Implements hook_ctools_plugin_directory().
+ */
+function zendesk_api_ctools_plugin_directory($module, $plugin) {
+  if ($module == 'zendesk_api') {
+    return 'plugins/zendesk_api/' . $plugin;
+  }
+}
+
+/**
+ * Implements hook_menu().
+ */
+function zendesk_api_menu() {
+  $items['admin/config/services/zendesk-api'] = array(
+    'title' => 'Zendesk API',
+    'description' => 'Default global settings for Zendesk API',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('zendesk_api_settings_form'),
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'zendesk_api.admin.inc'
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_ctools_plugin_type().
+ */
+function zendesk_api_ctools_plugin_type() {
+  $plugins['field'] = $plugins['form'] = $plugins['endpoint'] = array(
+    'classes' => array('class'),
+    'process' => 'zendesk_api_plugin_process',
+  );
+  return $plugins;
+}
+
+/**
+ * Adds default values to plugin definitions.
+ */
+function zendesk_api_plugin_process(&$plugin, $info) {
+  if ($info['type'] == 'endpoint') {
+    // Set some defaults for the endpoint base URL and token.
+    $plugin += array(
+      'base_url_variable' => 'zendesk_api_default_account_endpoint',
+      'token_variable' => 'zendesk_api_default_account_token',
+    );
+  }
+}
+
+/**
+ * Include CTools plugins and get all form plugins.
+ *
+ * @return array
+ *   All plugins for forms.
+ */
+function zendesk_api_get_form_plugins() {
+  ctools_include('plugins');
+  return ctools_get_plugins('zendesk_api', 'form');
+}
+
+/**
+ * Include CTools plugins and get all form plugins.
+ *
+ * @param string $plugin_name
+ *   The name of the plugin to retrieve.
+ * @param string $plugin_type
+ *   Type of the plugin to get.
+ *
+ * @return array
+ *   The specified form plugin.
+ */
+function zendesk_api_get_plugin($plugin_name, $plugin_type) {
+  ctools_include('plugins');
+  return ctools_get_plugins('zendesk_api', $plugin_type, $plugin_name);
+}
+
+/**
+ * Include CTools plugins and get all form plugins.
+ *
+ * @return array
+ *   All plugins for fields.
+ */
+function zendesk_api_get_field_plugins() {
+  ctools_include('plugins');
+  return ctools_get_plugins('zendesk_api', 'field');
+}
+
+/**
+ * Return the handler object based on the plugin name.
+ *
+ * @param string $plugin_name
+ *   Name of the form plugin.
+ * @param string $plugin_type
+ *   Type of the plugin to get.
+ *
+ * @return mixed
+ *   The Zendesk object.
+ */
+function zendesk_api_get_plugin_handler($plugin_name, $plugin_type) {
+  $plugin = zendesk_api_get_plugin($plugin_name, $plugin_type);
+  $class = ctools_plugin_get_class($plugin, 'class');
+  return new $class($plugin);
+}
+
+/**
+ * Implements hook_element_info().
+ */
+function zendesk_api_element_info() {
+  $types = array();
+  $types['zendesk_field'] = array(
+    '#input' => TRUE,
+    '#process' => array('zendesk_api_element_process'),
+    '#theme' => 'zendesk_field',
+    '#theme_wrappers' => array('form_element'),
+  );
+
+  return $types;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function zendesk_api_theme() {
+  $hooks = array(
+    'zendesk_field' => array(
+      'render element' => 'element',
+    ),
+  );
+
+  return $hooks;
+}
+
+/**
+ * Returns HTML for a zendesk_field form element.
+ */
+function theme_zendesk_field($variables) {
+  $element = $variables['element'];
+
+  $attributes = array();
+  if (isset($element['#id'])) {
+    $attributes['id'] = $element['#id'];
+  }
+  if (!empty($element['#attributes']['class'])) {
+    $attributes['class'] = (array) $element['#attributes']['class'];
+  }
+  $attributes['class'][] = 'zendesk-field';
+
+  return '<div' . drupal_attributes($attributes) . '>' . drupal_render_children($element) . '</div>';
+}
+
+/**
+ * Process function to expand the zendesk_field element type.
+ *
+ * The form elements of type zendesk_field need to operate:
+ *   #zendesk_type: Plugin name for a field plugin. Ex: 'options'.
+ *   #zendesk_id: ID in Zendesk for the field to pull. Ex: 1234.
+ */
+function zendesk_api_element_process($element, &$form_state, $form) {
+  try {
+    if (empty($element['#zendesk_type'])) {
+      throw new ZendeskAPIException('Invalid zendesk_field form element without #zendesk_type.');
+    }
+
+    // Store the handler in the form element so form alters can make use of the
+    // handler.
+    $element['#handler'] = $handler = zendesk_api_get_plugin_handler($element['#zendesk_type'], 'field');
+    $handler->defaults($element);
+    $handler->render($element);
+  }
+  catch (\ZendeskAPIException $e) {
+    drupal_set_message($e->getMessage(), WATCHDOG_ERROR);
+    watchdog_exception('zendesk_api', $e);
+  }
+
+  return $element;
+}

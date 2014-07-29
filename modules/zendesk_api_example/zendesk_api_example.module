@@ -1,0 +1,15 @@
+<?php
+
+/**
+ * @file
+ * Module implementation file.
+ */
+
+/**
+ * Implements hook_ctools_plugin_directory().
+ */
+function zendesk_api_example_ctools_plugin_directory($module, $plugin) {
+  if ($module == 'zendesk_api') {
+    return 'plugins/zendesk_api/' . $plugin;
+  }
+}
