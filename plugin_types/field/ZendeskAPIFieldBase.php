@@ -115,6 +115,10 @@ class ZendeskAPIFieldBase extends \ZendeskAPIPluginBase implements \ZendeskAPIFi
     if (!empty($element['#value'])) {
       $element[$field_name]['#value'] = $element['#value'];
     }
+
+    if (!empty($element['#title_display'])) {
+      $element[$field_name]['#title_display'] = $element['#title_display'];
+    }
   }
 
   /**
