@@ -95,6 +95,9 @@ abstract class ZendeskAPIEndpointBase extends \ZendeskAPIPluginBase implements \
     $output = curl_exec($ch);
     curl_close($ch);
     $decoded = json_decode($output);
+    if (!empty($decoded->error)) {
+      throw new \ZendeskAPIException($decoded->error);
+    }
     return $decoded;
   }
 
