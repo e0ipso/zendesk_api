@@ -21,10 +21,6 @@ class ZendeskAPIFieldOptions extends \ZendeskAPIFieldBase implements \ZendeskAPI
     foreach ($field_info->ticket_field->custom_field_options as $option) {
       $element[$field_name]['#options'][$option->value] = $option->name;
     }
-
-    if (!empty($element['#value'])) {
-      $element[$field_name]['#value'] = $element['#value'];
-    }
   }
 
 }
