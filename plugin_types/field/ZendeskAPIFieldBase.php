@@ -112,6 +112,13 @@ class ZendeskAPIFieldBase extends \ZendeskAPIPluginBase implements \ZendeskAPIFi
       '#required' => $field_info->ticket_field->required,
     );
 
+    if (!empty($element['#value'])) {
+      $element[$field_name]['#value'] = $element['#value'];
+    }
+
+    if (!empty($element['#title_display'])) {
+      $element[$field_name]['#title_display'] = $element['#title_display'];
+    }
   }
 
   /**
